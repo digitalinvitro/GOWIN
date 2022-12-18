@@ -57,42 +57,43 @@ always@(posedge clk or posedge RESET) begin
 end
 
 `define     STAGE_HEADER        3'b000
-`define     STAGE_ADDRESS_HI    3'b001
-`define     STAGE_ADDRESS_LO    3'b010
-`define     STAGE_SPACE         3'b011
-`define     STAGE_DATA_HI       3'b100
-`define     STAGE_DATA_LO       3'b101
-`define     STAGE_NOP           3'b110
-`define     STAGE_TRAIL         3'b111
+`define     STAGE_ADDRESS       3'b001
+`define     STAGE_SPACE         3'b010
+`define     STAGE_DATA_HI       3'b011
+`define     STAGE_DATA_LO       3'b100
+`define     STAGE_NOP           3'b101
+`define     STAGE_TRAIL         3'b110
 
-//reg [3:0]uart_counter;
 reg [2:0]uart_stage; 
 reg [9:0]uart_address_from;
+reg [3:0]ADDR_STOP;
+reg [15:0]ADDR_SHIFT;
 
 always@(posedge sendbyte or posedge RESET) begin 
   if(RESET) begin
-//    uart_counter <= 4'd0;
     uart_stage <= 3'b110;
     uart_address_from <= 10'd0;
+    ADDR_STOP <= 4'd0;
   end else begin
-    if(uart_stage == `STAGE_DATA_LO) begin
-//        uart_counter <=  uart_counter + 1'b1;
-        uart_address_from <= uart_address_from + 1'b1;
-    end;
-    uart_stage <= ((uart_stage == `STAGE_NOP) & (uart_address_from[3:0] != 4'd0))? `STAGE_DATA_HI : uart_stage + 1'b1;
+    if(uart_stage == `STAGE_DATA_LO) uart_address_from <= uart_address_from + 1'b1;
+    ADDR_STOP <= (uart_stage == `STAGE_HEADER)? 4'b0001 : {ADDR_STOP[2:0], 1'b0};
+    ADDR_SHIFT <= (uart_stage == `STAGE_HEADER)? uart_address_from : {ADDR_SHIFT[11:8], ADDR_SHIFT[7:4], ADDR_SHIFT[3:0], 4'd0};
+    uart_stage <= 
+      ((uart_stage == `STAGE_NOP) & (uart_address_from[3:0] != 4'd0))? `STAGE_DATA_HI : 
+      ((uart_stage == `STAGE_ADDRESS) & (ADDR_STOP[3] == 0))? `STAGE_ADDRESS :
+      uart_stage + 1'b1;
   end 
 end
 
 wire [7:0]HEX_TABLE[15:0] = {"F", "E", "D", "C", "B", "A", "9", "8", "7", "6", "5", "4", "3", "2", "1", "0"};
 wire [7:0]uart_out = 
  (uart_stage == `STAGE_HEADER)?      "$" : 
- (uart_stage == `STAGE_ADDRESS_HI)?  HEX_TABLE[uart_address_from[7:4]] : 
- (uart_stage == `STAGE_ADDRESS_LO)?  HEX_TABLE[uart_address_from[3:0]] :
+ (uart_stage == `STAGE_ADDRESS)?     HEX_TABLE[ADDR_SHIFT[15:12]] : 
  (uart_stage == `STAGE_SPACE)?       "#" : 
  (uart_stage == `STAGE_DATA_HI)?     HEX_TABLE[DATA[7:4]] :
  (uart_stage == `STAGE_DATA_LO)?     HEX_TABLE[DATA[3:0]] :
- (uart_stage == `STAGE_NOP)?         " " : 
- 8'd13;
+ (uart_stage == `STAGE_TRAIL)?       8'd13 : 
+ " ";
 
 serial_tx   UART_TX(.reset(RESET), .clk(clk), .sbyte(uart_out), .send(sendbyte), .tx(TXpin), .busy(txbusy));
 
@@ -130,3 +131,14 @@ assign {mode,operate,rA,rB,rC} = DATA[15:0];
 
 endmodule
 
+module debug(
+  input   RESET,
+  input   clk,
+  output  TxPin,
+  output  RequestAddress,
+  input   RequestDATA
+);
+
+
+
+endmodule 
