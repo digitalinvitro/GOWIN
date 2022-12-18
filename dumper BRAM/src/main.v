@@ -28,7 +28,7 @@ assign  ledB = (clk_1_43Hz)? !DATA[13] : 1'b1;
 
 
 wire [31:0]DATA;
-wire [9:0]ADDR;
+wire [10:0]ADDR;
 
 SP bram_sp_0 (
 .CLK(clk_24MHz),
@@ -36,7 +36,7 @@ SP bram_sp_0 (
 .CE(1'b1),
 .WRE(1'b0),
 .RESET(1'b0),
-.AD({ ADDR, 4'b0000 }),
+.AD({ ADDR, 3'b000 }),
 .DI(32'hFFFFFFFF),
 .DO({ DATA[31:8], DATA[7:0] }),
 .BLKSEL(3'b000) 
@@ -44,14 +44,17 @@ SP bram_sp_0 (
 
 defparam bram_sp_0.READ_MODE = 1'b0;
 defparam bram_sp_0.WRITE_MODE = 2'b00;
-defparam bram_sp_0.BIT_WIDTH = 16;
+defparam bram_sp_0.BIT_WIDTH = 8;
 defparam bram_sp_0.BLK_SEL = 3'b000;
 defparam bram_sp_0.RESET_MODE = "SYNC";
 //                                                                                    
+defparam bram_sp_0.INIT_RAM_00 = 256'hFF_0F_0E_0D_0C_0B_0A_09_08_07_06_05_04_03_02_01_00_A0_00_00_C3_CD_A0_0B_FC_7F_40_4D_FC_7F_C8_45;
+defparam bram_sp_0.INIT_RAM_3F = 256'hFF_0F_0E_0D_0C_0B_0A_09_08_07_06_05_04_03_02_01_00_A0_00_00_C3_CD_A0_0B_FC_7F_40_4D_FC_7F_C8_45;
+/*
 defparam bram_sp_0.INIT_RAM_00 = 256'h00A000000000000B00A000000000000B00A000000000000B_FC7F_404D_FC7F_C845;
 defparam bram_sp_0.INIT_RAM_01 = 256'h00A000000000000B00A000000000000B00A000000000000B00A000000000000B;
-defparam bram_sp_0.INIT_RAM_3F = 256'h00A000000000000B00A000000000000B00A000000000000B00A000000000000B;
-
+defparam bram_sp_0.INIT_RAM_3F = 256'h00A000000000000B00A000000000000B00A000000000000B00A000000000_AA55;
+*/
 /* Serial debug interface */
 
 serialdebug debug(
@@ -95,7 +98,7 @@ module serialdebug(
   input   clk,
   input   clk_div,
   output  TxPin,
-  output  reg [9:0]RequestAddress,
+  output  reg [10:0]RequestAddress,
   input   [7:0]RequestDATA
 );
 
