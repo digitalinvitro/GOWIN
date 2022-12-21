@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Module name="main" Register="8" Alu="7" Lut="4" Bsram="1">
+    <SubModule name="clkdiv" Register="26" Alu="25" Lut="1"/>
+    <SubModule name="debug" Register="36" Alu="10" Lut="33">
+        <SubModule name="UART_TX" Register="17" Lut="51"/>
+    </SubModule>
+</Module>

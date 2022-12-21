@@ -1,0 +1,10 @@
+-d C:\Projects\hdl\gowin\probe\dumper BRAM\impl\gwsynthesis\probe.vg
+-p GW1N-1-QFN48-6
+-pn GW1N-LV1QN48C6/I5
+-cst C:\Projects\hdl\gowin\probe\dumper BRAM\src\main.cst
+-cfg C:\Projects\hdl\gowin\probe\dumper BRAM\impl\pnr\device.cfg
+-bit
+-tr
+-ph
+-timing
+-cst_error
