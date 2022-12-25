@@ -21,20 +21,20 @@ wire clk_min;
 
 clkdivider clkdiv(.RESET(RESET), .clk(clk_24MHz), .clk_div(clk_1_43Hz), .clk_min(clk_min));
 
-reg [31:0]R[7:0];
-reg [15:0]RgTMP;
+reg [10:0]IP;
+//reg [31:0]R[7:0];
+wire [7:0]RFsrc;
+
 reg [7:0]OP_CODE;
 
 wire [15:0]DATA;
 wire [10:0]ADDR;
-
-wire [7:0]RFsrc;
-wire toRAM;
-
 wire [15:0]DATAB;
-reg [10:0]IP;
 
-wire [10:0]ADDRB = (toRAM)? RgTMP[10:0] : IP;
+reg  [7:0]RgTMP;
+wire toRAM;
+wire [15:0]Raddr = {DATAB[7:0], RgTMP[7:0]};
+wire [10:0]ADDRB = (toRAM)? Raddr[10:0] : IP;
 
 DPB dpb_inst_0 ( 
 .RESETA(RESET),
@@ -48,7 +48,7 @@ DPB dpb_inst_0 (
 .BLKSELA(3'b000),
 
 .RESETB(RESET),
-.CLKB(clk_1_43Hz),
+.CLKB(clk_24MHz),
 .OCEB(1'b1),
 .CEB(1'b1),
 .WREB(toRAM),
@@ -61,7 +61,7 @@ DPB dpb_inst_0 (
 defparam dpb_inst_0.READ_MODE0 = 1'b0;
 defparam dpb_inst_0.READ_MODE1 = 1'b0;
 defparam dpb_inst_0.WRITE_MODE0 = 2'b00;
-defparam dpb_inst_0.WRITE_MODE1 = 2'b00;
+defparam dpb_inst_0.WRITE_MODE1 = 2'b10;
 defparam dpb_inst_0.BIT_WIDTH_0 = 8;
 defparam dpb_inst_0.BIT_WIDTH_1 = 8;
 defparam dpb_inst_0.BLK_SEL_0 = 3'b000;
@@ -69,12 +69,12 @@ defparam dpb_inst_0.BLK_SEL_1 = 3'b000;
 defparam dpb_inst_0.RESET_MODE = "SYNC";
 
 //                                                                                    
-defparam dpb_inst_0.INIT_RAM_00 = 256'h00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_30_A0_AA_B0;
+defparam dpb_inst_0.INIT_RAM_00 = 256'h00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_30_A0_55_B0_00_31_A0_AA_B0;
 //defparam dpb_inst_0.INIT_RAM_3F = 256'hFF_0F_0E_0D_0C_0B_0A_09_08_07_06_05_04_03_02_01_00_A0_00_00_C3_CD_A0_0B_FC_7F_40_4D_FC_7F_C8_45;
 
 reg [7:0]RF[7:0];
 
-wire fetch, REG_WR, INC_IP;
+wire fetch, INC_IP;
 wire [1:0]target;
 
 wire [3:0]OP;
@@ -84,25 +84,25 @@ assign {OP,d,rg} = OP_CODE;
 
 assign {ledR,ledB} = 2'b11;
 
-sequenser microcode(.RESET(RESET),.clk(clk_min),.aseq(OP),.iseq({target, REG_WR, INC_IP}), .fetch(fetch)/*, .count({ledR, ledB})*/);
+sequenser microcode(.RESET(RESET),.clk(clk_1_43Hz),.aseq(OP),.iseq({target, INC_IP}), .fetch(fetch)/*, .count({ledR, ledB})*/);
 
-wire toRF = (target == 2'b00);
+wire toRF = (target == 2'b11);
 wire toTMP = (target == 2'b01);
 assign toRAM = (target == 2'b10);
 
-always@(posedge clk_min or posedge RESET) begin
+always@(posedge clk_1_43Hz or posedge RESET) begin
   if(RESET) begin
      IP <= 10'd0;
      OP_CODE <= 8'h00;
   end else begin
      if(fetch) OP_CODE <= DATAB[7:0];
      IP <= IP + INC_IP;
-     if(toRF & REG_WR) RF[rg] <= DATAB[7:0];
-     if(toTMP) RgTMP[15:0] <= {DATAB[7:0], RgTMP[15:8]};
+     if(toRF) RF[rg] <= DATAB[7:0];
+     if(toTMP) RgTMP[7:0] <= DATAB[7:0];
   end
 end
 assign RFsrc = RF[rg];
-assign  ledG = INC_IP;
+assign  ledG = fetch;
 
 /* Serial debug interface */
 serialdebug debug(
@@ -114,16 +114,9 @@ serialdebug debug(
   .RequestDATA(DATA[7:0])
 );
 
-/* CPU */
-wire [1:0]mode;
-wire [4:0]operate;
-wire [2:0]rA,rB,rC;
-
-assign {mode,operate,rA,rB,rC} = DATA[15:0];
-
 endmodule
 
-`define FETCH_BIT 4
+`define FETCH_BIT 3
 
 module sequenser(
   input  RESET,
@@ -142,18 +135,18 @@ always@(posedge clk or posedge RESET) begin
   if(RESET) begin
      fetch <= 1'b1;
      count <= 2'd0;
-/* start                             F TO W IP    */
-     sequence[{2'b00, 4'b0000}] = 5'b0_00_0_0;
+/* start                             F TO IP    */
+     sequence[{2'b00, 4'b0000}] = 5'b0_00_0;
 // 1011.0.reg  op=1011 d=0 --> op.d.reg #const8 (B0 AA)  MOV AL, 0xAA
-     sequence[{2'b00, 4'b1011}] = 5'b0_00_0_1;
-     sequence[{2'b01, 4'b1011}] = 5'b1_00_1_1;
-     sequence[{2'b10, 4'b1011}] = 5'b0_00_0_0;
-     sequence[{2'b11, 4'b1011}] = 5'b0_00_0_0;
+     sequence[{2'b00, 4'b1011}] = 5'b0_00_1;
+     sequence[{2'b01, 4'b1011}] = 5'b1_11_1;
+     sequence[{2'b10, 4'b1011}] = 5'b0_00_0;
+     sequence[{2'b11, 4'b1011}] = 5'b0_00_0;
 // 1010.000.w addr_l addr_h w=0 -> A0 00 30  MOV AL, byte ptr [0x3000]
-     sequence[{2'b00, 4'b1010}] = 5'b0_00_0_1;
-     sequence[{2'b01, 4'b1010}] = 5'b0_01_1_1;
-     sequence[{2'b10, 4'b1010}] = 5'b0_01_1_1;
-     sequence[{2'b11, 4'b1010}] = 5'b1_10_1_1;
+     sequence[{2'b00, 4'b1010}] = 5'b0_00_1;
+     sequence[{2'b01, 4'b1010}] = 5'b0_01_1;
+     sequence[{2'b10, 4'b1010}] = 5'b1_10_1;
+     sequence[{2'b11, 4'b1010}] = 5'b0_00_0;
   end else begin
      fetch <= sequence[{count, aseq}][`FETCH_BIT];
      count <= (fetch)? 2'd0 : (count + 1'b1);
