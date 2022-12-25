@@ -6,7 +6,7 @@
     <visualElement>
       <elementName>Clock</elementName>
       <elementAttributes/>
-      <pos x="40" y="60"/>
+      <pos x="0" y="20"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -16,7 +16,7 @@
           <string>clk</string>
         </entry>
       </elementAttributes>
-      <pos x="60" y="60"/>
+      <pos x="20" y="20"/>
     </visualElement>
     <visualElement>
       <elementName>External</elementName>
@@ -39,14 +39,14 @@
         </entry>
         <entry>
           <string>Code</string>
-          <string>`define FETCH_BIT 4
+          <string>`define FETCH_BIT 5
 
 module sequenser(
   input  RESET,
   input  clk,
   input  [3:0]aseq, 
   output [`FETCH_BIT-1:0]iseq,
-  output reg fetch = 1&apos;b1,
+  output fetch,
   output reg [1:0]count = 2&apos;d0
 );
 
@@ -54,40 +54,49 @@ reg [`FETCH_BIT:0]sequence[63:0];
 
 always@(posedge clk or posedge RESET) begin
   if(RESET) begin
-     fetch &lt;= 1&apos;b1;
      count &lt;= 2&apos;d0;
-/* start                             F TO W IP    */
-     sequence[{2&apos;b00, 4&apos;b0000}] = 5&apos;b0_00_0_0;
+//TO:   toTMP = 2&apos;b01, toRAM = 2&apos;b10, toRF = 2&apos;b11;
+//R:    AL = 0, reg = 1
+//A:    TMP = 0, TMP.reg = 1
+/* start                             F A R TO IP    */
+     sequence[{2&apos;b00, 4&apos;b0000}] = 6&apos;b1_0_0_00_1;
+// 100010.d.w mod.reg.r/m op=100010 d=1, w=0  (88 07) MOV [BX], AL 100010.0.0 00.000.111 reg -&gt; r/m r/m=[BX}
+     sequence[{2&apos;b00, 4&apos;b1000}] = 6&apos;b0_0_0_01_1;   
+     sequence[{2&apos;b01, 4&apos;b1000}] = 6&apos;b1_1_0_10_1;
+     sequence[{2&apos;b10, 4&apos;b1000}] = 6&apos;b0_0_0_00_0;
+     sequence[{2&apos;b11, 4&apos;b1000}] = 6&apos;b0_0_0_00_0;
 // 1011.0.reg  op=1011 d=0 --&gt; op.d.reg #const8 (B0 AA)  MOV AL, 0xAA
-     sequence[{2&apos;b00, 4&apos;b1011}] = 5&apos;b0_00_0_1;
-     sequence[{2&apos;b01, 4&apos;b1011}] = 5&apos;b1_00_1_1;
-     sequence[{2&apos;b10, 4&apos;b1011}] = 5&apos;b0_00_0_0;
-     sequence[{2&apos;b11, 4&apos;b1011}] = 5&apos;b0_00_0_0;
-// 1010.000.w addr_l addr_h w=0 -&gt; A0 00 30  MOV AL, byte ptr [0x3000]
-     sequence[{2&apos;b00, 4&apos;b1010}] = 5&apos;b0_00_0_1;
-     sequence[{2&apos;b01, 4&apos;b1010}] = 5&apos;b0_01_1_1;
-     sequence[{2&apos;b10, 4&apos;b1010}] = 5&apos;b0_01_1_1;
-     sequence[{2&apos;b11, 4&apos;b1010}] = 5&apos;b1_10_1_1;
+/*                                   F A R TO IP    */
+     sequence[{2&apos;b00, 4&apos;b1011}] = 6&apos;b0_0_0_11_1;   
+     sequence[{2&apos;b01, 4&apos;b1011}] = 6&apos;b1_0_0_00_1;
+     sequence[{2&apos;b10, 4&apos;b1011}] = 6&apos;b0_0_0_00_0;
+     sequence[{2&apos;b11, 4&apos;b1011}] = 6&apos;b0_0_0_00_0;
+// 1010.00.1.w addr_l addr_h d=1 w=0 -&gt; A2 00 30  MOV byte ptr [addr], AL
+/*                                   F A R TO IP    */
+     sequence[{2&apos;b00, 4&apos;b1010}] = 6&apos;b0_0_0_01_1;
+     sequence[{2&apos;b01, 4&apos;b1010}] = 6&apos;b0_0_0_10_1;   // R=0 =&gt; source A, A=0 =&gt; addr TMP
+     sequence[{2&apos;b10, 4&apos;b1010}] = 6&apos;b1_0_0_00_1;   
+     sequence[{2&apos;b11, 4&apos;b1010}] = 6&apos;b0_0_0_00_0;
   end else begin
-     fetch &lt;= sequence[{count, aseq}][`FETCH_BIT];
      count &lt;= (fetch)? 2&apos;d0 : (count + 1&apos;b1);
   end
 end
 
 assign iseq = sequence[{count, aseq}][(`FETCH_BIT-1):0];
+assign fetch = sequence[{count, aseq}][`FETCH_BIT];
 endmodule</string>
         </entry>
         <entry>
           <string>externalOutputs</string>
-          <string>iseq:4,fetch,count:2</string>
+          <string>iseq:5,fetch,count:2</string>
         </entry>
       </elementAttributes>
-      <pos x="320" y="300"/>
+      <pos x="280" y="260"/>
     </visualElement>
     <visualElement>
       <elementName>Button</elementName>
       <elementAttributes/>
-      <pos x="40" y="300"/>
+      <pos x="0" y="260"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -97,7 +106,7 @@ endmodule</string>
           <string>RESET</string>
         </entry>
       </elementAttributes>
-      <pos x="60" y="300"/>
+      <pos x="20" y="260"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -111,7 +120,7 @@ endmodule</string>
           <string>RESET</string>
         </entry>
       </elementAttributes>
-      <pos x="300" y="300"/>
+      <pos x="260" y="260"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -125,7 +134,7 @@ endmodule</string>
           <string>clk</string>
         </entry>
       </elementAttributes>
-      <pos x="300" y="320"/>
+      <pos x="260" y="280"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -135,7 +144,7 @@ endmodule</string>
           <string>iseq</string>
         </entry>
       </elementAttributes>
-      <pos x="580" y="300"/>
+      <pos x="540" y="260"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -145,7 +154,7 @@ endmodule</string>
           <string>fetch</string>
         </entry>
       </elementAttributes>
-      <pos x="580" y="320"/>
+      <pos x="540" y="280"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -155,7 +164,7 @@ endmodule</string>
           <string>micro_step</string>
         </entry>
       </elementAttributes>
-      <pos x="580" y="340"/>
+      <pos x="540" y="300"/>
     </visualElement>
     <visualElement>
       <elementName>External</elementName>
@@ -170,7 +179,7 @@ endmodule</string>
         </entry>
         <entry>
           <string>externalInputs</string>
-          <string>RESET,clk,iseq:4,fetch,DATAB:8</string>
+          <string>RESET,clk,iseq:5,fetch,DATAB:8</string>
         </entry>
         <entry>
           <string>Width</string>
@@ -181,7 +190,7 @@ endmodule</string>
           <string>module CPU(
   input  RESET,
   input  clk,
-  input  [3:0]iseq,
+  input  [4:0]iseq,
   input  fetch,
   input  [7:0]DATAB,
   output reg [9:0]IP,
@@ -190,23 +199,29 @@ endmodule</string>
   output [15:0]CX,
   output [15:0]DX,
   output [15:0]BX,
-  output reg [15:0]RgTMP,
-  output [7:0]RFsrc
+  output [7:0]TMP,
+  output [15:0]Raddr,
+  output [7:0]RFsrc,
+  output toRAM
 );
 
 reg [7:0]RF[7:0];
 reg [7:0]OP_CODE;
+reg [7:0]RgTMP;
 
-wire REG_WR, INC_IP;
+wire A, source, INC_IP;
 wire [1:0]target;
 wire [2:0]rg;
 wire d;
 
 assign {OP,d,rg} = OP_CODE;
-assign {target, REG_WR, INC_IP} = iseq;
+assign {A, source, target, INC_IP} = iseq;
 
-wire toRF = (target == 2&apos;b00);
-wire toTMP = (target == 2&apos;b01);
+wire    toRF = (target == 2&apos;b11);
+wire   toTMP = (target == 2&apos;b01);
+assign toRAM = (target == 2&apos;b10);
+
+wire [2:0]src = (source)? rg : 3&apos;b000;
 
 always@(posedge clk or posedge RESET) begin
   if(RESET) begin
@@ -215,26 +230,35 @@ always@(posedge clk or posedge RESET) begin
   end else begin
      if(fetch) OP_CODE &lt;= DATAB[7:0];
      IP &lt;= IP + INC_IP;
-     if(toRF &amp; REG_WR) RF[rg] &lt;= DATAB[7:0];
-     if(toTMP) begin
-        RgTMP[7:0] &lt;= RgTMP[15:8];
-        RgTMP[15:8] &lt;= DATAB;
-     end;
+     if(toRF) RF[rg] &lt;= DATAB[7:0];
+     if(toTMP) RgTMP[7:0] &lt;= DATAB;
   end
 end
 assign AX = {RF[4], RF[0]};
 assign CX = {RF[5], RF[1]};
 assign DX = {RF[6], RF[2]};
 assign BX = {RF[7], RF[3]};
-assign RFsrc = RF[rg];
+assign RFsrc = RF[src];
+
+wire [15:0]MuxAddr = 
+ (RgTMP == 3&apos;d7)? BX :
+ (RgTMP == 3&apos;d6)? AX : 
+ (RgTMP == 3&apos;d5)? CX : 
+ (RgTMP == 3&apos;d4)? DX : 
+ (RgTMP == 3&apos;d3)? AX : 
+ (RgTMP == 3&apos;d2)? AX : 
+ (RgTMP == 3&apos;d1)? AX : AX;
+
+assign Raddr = (A)? MuxAddr : {DATAB[7:0], RgTMP};
+assign TMP = RgTMP;
 endmodule</string>
         </entry>
         <entry>
           <string>externalOutputs</string>
-          <string>IP:10,OP:4,AX:16,CX:16,DX:16,BX:16,RgTMP:16,RFsrc:8</string>
+          <string>IP:10,OP:4,AX:16,CX:16,DX:16,BX:16,TMP:8,Raddr:16,RFsrc:8,toRAM</string>
         </entry>
       </elementAttributes>
-      <pos x="320" y="420"/>
+      <pos x="280" y="380"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -248,7 +272,7 @@ endmodule</string>
           <string>RESET</string>
         </entry>
       </elementAttributes>
-      <pos x="300" y="420"/>
+      <pos x="260" y="380"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -262,7 +286,7 @@ endmodule</string>
           <string>clk</string>
         </entry>
       </elementAttributes>
-      <pos x="300" y="440"/>
+      <pos x="260" y="400"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -276,7 +300,7 @@ endmodule</string>
           <string>iseq</string>
         </entry>
       </elementAttributes>
-      <pos x="300" y="460"/>
+      <pos x="260" y="420"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -290,18 +314,18 @@ endmodule</string>
           <string>fetch</string>
         </entry>
       </elementAttributes>
-      <pos x="300" y="480"/>
+      <pos x="260" y="440"/>
     </visualElement>
     <visualElement>
       <elementName>ROM</elementName>
       <elementAttributes>
         <entry>
-          <string>Label</string>
-          <string>PRG</string>
-        </entry>
-        <entry>
           <string>AddrBits</string>
           <int>10</int>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>PRG</string>
         </entry>
         <entry>
           <string>Bits</string>
@@ -309,14 +333,14 @@ endmodule</string>
         </entry>
         <entry>
           <string>Data</string>
-          <data>b0,aa,a0,30</data>
+          <data>b0,aa,a2,30,0,b0,55,a2,31,0,b3,40,88,7</data>
         </entry>
         <entry>
           <string>intFormat</string>
           <intFormat>hex</intFormat>
         </entry>
       </elementAttributes>
-      <pos x="0" y="140"/>
+      <pos x="-40" y="100"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -326,7 +350,7 @@ endmodule</string>
           <string>data</string>
         </entry>
       </elementAttributes>
-      <pos x="220" y="160"/>
+      <pos x="180" y="120"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -340,7 +364,7 @@ endmodule</string>
           <string>data</string>
         </entry>
       </elementAttributes>
-      <pos x="300" y="500"/>
+      <pos x="260" y="460"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -350,7 +374,7 @@ endmodule</string>
           <string>micro_addr</string>
         </entry>
       </elementAttributes>
-      <pos x="580" y="440"/>
+      <pos x="540" y="400"/>
     </visualElement>
     <visualElement>
       <elementName>In</elementName>
@@ -360,7 +384,7 @@ endmodule</string>
           <value v="1" z="false"/>
         </entry>
       </elementAttributes>
-      <pos x="-40" y="220"/>
+      <pos x="-80" y="180"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -374,7 +398,7 @@ endmodule</string>
           <string>micro_addr</string>
         </entry>
       </elementAttributes>
-      <pos x="200" y="340"/>
+      <pos x="160" y="300"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -384,7 +408,7 @@ endmodule</string>
           <string>ADDR</string>
         </entry>
       </elementAttributes>
-      <pos x="580" y="420"/>
+      <pos x="540" y="380"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -394,7 +418,7 @@ endmodule</string>
           <string>AX</string>
         </entry>
       </elementAttributes>
-      <pos x="580" y="460"/>
+      <pos x="540" y="420"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -404,7 +428,7 @@ endmodule</string>
           <string>CX</string>
         </entry>
       </elementAttributes>
-      <pos x="580" y="480"/>
+      <pos x="540" y="440"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -414,7 +438,7 @@ endmodule</string>
           <string>DX</string>
         </entry>
       </elementAttributes>
-      <pos x="580" y="500"/>
+      <pos x="540" y="460"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -424,7 +448,7 @@ endmodule</string>
           <string>BX</string>
         </entry>
       </elementAttributes>
-      <pos x="580" y="520"/>
+      <pos x="540" y="480"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -438,21 +462,21 @@ endmodule</string>
           <string>ADDR</string>
         </entry>
       </elementAttributes>
-      <pos x="-20" y="140"/>
+      <pos x="-60" y="100"/>
     </visualElement>
     <visualElement>
       <elementName>Splitter</elementName>
       <elementAttributes>
         <entry>
           <string>Input Splitting</string>
-          <string>4</string>
+          <string>5</string>
         </entry>
         <entry>
           <string>Output Splitting</string>
-          <string>1,1,2</string>
+          <string>1,2,1,1</string>
         </entry>
       </elementAttributes>
-      <pos x="580" y="220"/>
+      <pos x="540" y="180"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -470,7 +494,7 @@ endmodule</string>
           <intFormat>bin</intFormat>
         </entry>
       </elementAttributes>
-      <pos x="660" y="200"/>
+      <pos x="620" y="180"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -492,17 +516,17 @@ endmodule</string>
           <intFormat>dec</intFormat>
         </entry>
       </elementAttributes>
-      <pos x="740" y="280"/>
+      <pos x="780" y="200"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
       <elementAttributes>
         <entry>
           <string>NetName</string>
-          <string>Rg_tmp</string>
+          <string>R_addr</string>
         </entry>
       </elementAttributes>
-      <pos x="580" y="540"/>
+      <pos x="540" y="520"/>
     </visualElement>
     <visualElement>
       <elementName>BlockRAMDualPort</elementName>
@@ -516,7 +540,7 @@ endmodule</string>
           <int>8</int>
         </entry>
       </elementAttributes>
-      <pos x="920" y="440"/>
+      <pos x="880" y="400"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -527,10 +551,10 @@ endmodule</string>
         </entry>
         <entry>
           <string>NetName</string>
-          <string>Rg_tmp</string>
+          <string>R_addr</string>
         </entry>
       </elementAttributes>
-      <pos x="900" y="440"/>
+      <pos x="860" y="400"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -544,17 +568,7 @@ endmodule</string>
           <string>clk</string>
         </entry>
       </elementAttributes>
-      <pos x="900" y="520"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Tunnel</elementName>
-      <elementAttributes>
-        <entry>
-          <string>NetName</string>
-          <string>wr</string>
-        </entry>
-      </elementAttributes>
-      <pos x="660" y="240"/>
+      <pos x="860" y="480"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -564,7 +578,7 @@ endmodule</string>
           <string>RF_s</string>
         </entry>
       </elementAttributes>
-      <pos x="580" y="560"/>
+      <pos x="540" y="540"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -578,7 +592,7 @@ endmodule</string>
           <string>RF_s</string>
         </entry>
       </elementAttributes>
-      <pos x="900" y="460"/>
+      <pos x="860" y="420"/>
     </visualElement>
     <visualElement>
       <elementName>Tunnel</elementName>
@@ -588,229 +602,239 @@ endmodule</string>
           <string>RAM_D</string>
         </entry>
       </elementAttributes>
-      <pos x="1120" y="480"/>
+      <pos x="1080" y="440"/>
     </visualElement>
     <visualElement>
-      <elementName>Comparator</elementName>
+      <elementName>Tunnel</elementName>
       <elementAttributes>
         <entry>
-          <string>Bits</string>
-          <int>2</int>
+          <string>NetName</string>
+          <string>ToRAM</string>
         </entry>
       </elementAttributes>
-      <pos x="740" y="320"/>
+      <pos x="540" y="560"/>
     </visualElement>
     <visualElement>
-      <elementName>In</elementName>
+      <elementName>Tunnel</elementName>
       <elementAttributes>
         <entry>
-          <string>Bits</string>
-          <int>2</int>
+          <string>rotation</string>
+          <rotation rotation="2"/>
         </entry>
         <entry>
-          <string>InDefault</string>
-          <value v="2" z="false"/>
+          <string>NetName</string>
+          <string>ToRAM</string>
         </entry>
       </elementAttributes>
-      <pos x="700" y="380"/>
+      <pos x="860" y="460"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes>
+        <entry>
+          <string>small</string>
+          <boolean>true</boolean>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>source</string>
+        </entry>
+        <entry>
+          <string>intFormat</string>
+          <intFormat>bin</intFormat>
+        </entry>
+      </elementAttributes>
+      <pos x="620" y="220"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes>
+        <entry>
+          <string>small</string>
+          <boolean>true</boolean>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>A</string>
+        </entry>
+        <entry>
+          <string>intFormat</string>
+          <intFormat>bin</intFormat>
+        </entry>
+      </elementAttributes>
+      <pos x="620" y="240"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Tunnel</elementName>
+      <elementAttributes>
+        <entry>
+          <string>NetName</string>
+          <string>TMP</string>
+        </entry>
+      </elementAttributes>
+      <pos x="540" y="500"/>
     </visualElement>
   </visualElements>
   <wires>
     <wire>
-      <p1 x="300" y="320"/>
-      <p2 x="320" y="320"/>
+      <p1 x="420" y="480"/>
+      <p2 x="540" y="480"/>
     </wire>
     <wire>
-      <p1 x="460" y="320"/>
-      <p2 x="580" y="320"/>
+      <p1 x="860" y="480"/>
+      <p2 x="880" y="480"/>
     </wire>
     <wire>
-      <p1 x="700" y="320"/>
-      <p2 x="740" y="320"/>
+      <p1 x="0" y="260"/>
+      <p2 x="20" y="260"/>
     </wire>
     <wire>
-      <p1 x="300" y="480"/>
-      <p2 x="320" y="480"/>
+      <p1 x="260" y="260"/>
+      <p2 x="280" y="260"/>
     </wire>
     <wire>
-      <p1 x="460" y="480"/>
-      <p2 x="580" y="480"/>
+      <p1 x="420" y="260"/>
+      <p2 x="440" y="260"/>
     </wire>
     <wire>
-      <p1 x="980" y="480"/>
-      <p2 x="1120" y="480"/>
+      <p1 x="440" y="260"/>
+      <p2 x="540" y="260"/>
     </wire>
     <wire>
-      <p1 x="60" y="160"/>
-      <p2 x="220" y="160"/>
+      <p1 x="260" y="420"/>
+      <p2 x="280" y="420"/>
     </wire>
     <wire>
-      <p1 x="300" y="420"/>
-      <p2 x="320" y="420"/>
+      <p1 x="420" y="420"/>
+      <p2 x="540" y="420"/>
     </wire>
     <wire>
-      <p1 x="460" y="420"/>
-      <p2 x="580" y="420"/>
+      <p1 x="860" y="420"/>
+      <p2 x="880" y="420"/>
     </wire>
     <wire>
-      <p1 x="600" y="260"/>
-      <p2 x="620" y="260"/>
+      <p1 x="-60" y="100"/>
+      <p2 x="-40" y="100"/>
     </wire>
     <wire>
-      <p1 x="460" y="520"/>
-      <p2 x="580" y="520"/>
+      <p1 x="560" y="200"/>
+      <p2 x="780" y="200"/>
     </wire>
     <wire>
-      <p1 x="900" y="520"/>
-      <p2 x="920" y="520"/>
+      <p1 x="420" y="520"/>
+      <p2 x="540" y="520"/>
     </wire>
     <wire>
-      <p1 x="620" y="200"/>
-      <p2 x="660" y="200"/>
+      <p1 x="160" y="300"/>
+      <p2 x="280" y="300"/>
     </wire>
     <wire>
-      <p1 x="40" y="300"/>
-      <p2 x="60" y="300"/>
+      <p1 x="420" y="300"/>
+      <p2 x="540" y="300"/>
     </wire>
     <wire>
-      <p1 x="300" y="300"/>
-      <p2 x="320" y="300"/>
+      <p1 x="260" y="460"/>
+      <p2 x="280" y="460"/>
     </wire>
     <wire>
-      <p1 x="460" y="300"/>
-      <p2 x="480" y="300"/>
+      <p1 x="420" y="460"/>
+      <p2 x="540" y="460"/>
     </wire>
     <wire>
-      <p1 x="480" y="300"/>
-      <p2 x="580" y="300"/>
+      <p1 x="860" y="460"/>
+      <p2 x="880" y="460"/>
     </wire>
     <wire>
-      <p1 x="300" y="460"/>
-      <p2 x="320" y="460"/>
+      <p1 x="-60" y="140"/>
+      <p2 x="-40" y="140"/>
     </wire>
     <wire>
-      <p1 x="460" y="460"/>
-      <p2 x="580" y="460"/>
+      <p1 x="260" y="400"/>
+      <p2 x="280" y="400"/>
     </wire>
     <wire>
-      <p1 x="900" y="460"/>
-      <p2 x="920" y="460"/>
+      <p1 x="420" y="400"/>
+      <p2 x="540" y="400"/>
     </wire>
     <wire>
-      <p1 x="-20" y="140"/>
-      <p2 x="0" y="140"/>
+      <p1 x="860" y="400"/>
+      <p2 x="880" y="400"/>
     </wire>
     <wire>
-      <p1 x="600" y="240"/>
-      <p2 x="660" y="240"/>
+      <p1 x="560" y="240"/>
+      <p2 x="620" y="240"/>
     </wire>
     <wire>
-      <p1 x="460" y="560"/>
-      <p2 x="580" y="560"/>
+      <p1 x="420" y="560"/>
+      <p2 x="540" y="560"/>
     </wire>
     <wire>
-      <p1 x="200" y="340"/>
-      <p2 x="320" y="340"/>
+      <p1 x="-80" y="180"/>
+      <p2 x="-60" y="180"/>
     </wire>
     <wire>
-      <p1 x="460" y="340"/>
-      <p2 x="580" y="340"/>
+      <p1 x="440" y="180"/>
+      <p2 x="540" y="180"/>
     </wire>
     <wire>
-      <p1 x="720" y="340"/>
-      <p2 x="740" y="340"/>
+      <p1 x="560" y="180"/>
+      <p2 x="620" y="180"/>
     </wire>
     <wire>
-      <p1 x="800" y="340"/>
-      <p2 x="820" y="340"/>
+      <p1 x="0" y="20"/>
+      <p2 x="20" y="20"/>
     </wire>
     <wire>
-      <p1 x="300" y="500"/>
-      <p2 x="320" y="500"/>
+      <p1 x="420" y="500"/>
+      <p2 x="540" y="500"/>
     </wire>
     <wire>
-      <p1 x="460" y="500"/>
-      <p2 x="580" y="500"/>
+      <p1 x="260" y="280"/>
+      <p2 x="280" y="280"/>
     </wire>
     <wire>
-      <p1 x="820" y="500"/>
-      <p2 x="920" y="500"/>
+      <p1 x="420" y="280"/>
+      <p2 x="540" y="280"/>
     </wire>
     <wire>
-      <p1 x="-20" y="180"/>
-      <p2 x="0" y="180"/>
+      <p1 x="260" y="440"/>
+      <p2 x="280" y="440"/>
     </wire>
     <wire>
-      <p1 x="300" y="440"/>
-      <p2 x="320" y="440"/>
+      <p1 x="420" y="440"/>
+      <p2 x="540" y="440"/>
     </wire>
     <wire>
-      <p1 x="460" y="440"/>
-      <p2 x="580" y="440"/>
+      <p1 x="940" y="440"/>
+      <p2 x="1080" y="440"/>
     </wire>
     <wire>
-      <p1 x="900" y="440"/>
-      <p2 x="920" y="440"/>
+      <p1 x="20" y="120"/>
+      <p2 x="180" y="120"/>
     </wire>
     <wire>
-      <p1 x="620" y="280"/>
-      <p2 x="700" y="280"/>
+      <p1 x="420" y="540"/>
+      <p2 x="540" y="540"/>
     </wire>
     <wire>
-      <p1 x="700" y="280"/>
-      <p2 x="740" y="280"/>
+      <p1 x="260" y="380"/>
+      <p2 x="280" y="380"/>
     </wire>
     <wire>
-      <p1 x="-40" y="220"/>
-      <p2 x="-20" y="220"/>
+      <p1 x="420" y="380"/>
+      <p2 x="540" y="380"/>
     </wire>
     <wire>
-      <p1 x="480" y="220"/>
-      <p2 x="580" y="220"/>
-    </wire>
-    <wire>
-      <p1 x="600" y="220"/>
+      <p1 x="560" y="220"/>
       <p2 x="620" y="220"/>
     </wire>
     <wire>
-      <p1 x="40" y="60"/>
-      <p2 x="60" y="60"/>
+      <p1 x="440" y="180"/>
+      <p2 x="440" y="260"/>
     </wire>
     <wire>
-      <p1 x="460" y="540"/>
-      <p2 x="580" y="540"/>
-    </wire>
-    <wire>
-      <p1 x="700" y="380"/>
-      <p2 x="720" y="380"/>
-    </wire>
-    <wire>
-      <p1 x="480" y="220"/>
-      <p2 x="480" y="300"/>
-    </wire>
-    <wire>
-      <p1 x="720" y="340"/>
-      <p2 x="720" y="380"/>
-    </wire>
-    <wire>
-      <p1 x="-20" y="180"/>
-      <p2 x="-20" y="220"/>
-    </wire>
-    <wire>
-      <p1 x="820" y="340"/>
-      <p2 x="820" y="500"/>
-    </wire>
-    <wire>
-      <p1 x="620" y="260"/>
-      <p2 x="620" y="280"/>
-    </wire>
-    <wire>
-      <p1 x="620" y="200"/>
-      <p2 x="620" y="220"/>
-    </wire>
-    <wire>
-      <p1 x="700" y="280"/>
-      <p2 x="700" y="320"/>
+      <p1 x="-60" y="140"/>
+      <p2 x="-60" y="180"/>
     </wire>
   </wires>
   <measurementOrdering/>
