@@ -1,0 +1,48 @@
+object MainForm: TMainForm
+  Left = 540
+  Height = 372
+  Top = 202
+  Width = 538
+  Caption = 'serial'
+  ClientHeight = 372
+  ClientWidth = 538
+  OnClose = FormClose
+  OnCreate = FormCreate
+  LCLVersion = '2.2.4.0'
+  object StatusBar: TStatusBar
+    Left = 0
+    Height = 23
+    Top = 349
+    Width = 538
+    Panels = <    
+      item
+        Text = 'serial'
+        Width = 100
+      end    
+      item
+        Width = 50
+      end    
+      item
+        Width = 50
+      end>
+    SimplePanel = False
+  end
+  object DumpRAM: TStringGrid
+    Left = 0
+    Height = 349
+    Top = 0
+    Width = 538
+    Align = alClient
+    ColCount = 17
+    DefaultColWidth = 30
+    RowCount = 200
+    TabOrder = 1
+  end
+  object DebugTimer: TTimer
+    Enabled = False
+    Interval = 30
+    OnTimer = DebugTimerTimer
+    Left = 448
+    Top = 32
+  end
+end
