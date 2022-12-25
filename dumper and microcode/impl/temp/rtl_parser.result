@@ -1,0 +1,54 @@
+[
+ {
+  "InstFile" : "C:/Projects/hdl/gowin/probe/dumper BRAM/src/main.v",
+  "InstLine" : 7,
+  "InstName" : "main",
+  "ModuleFile" : "C:/Projects/hdl/gowin/probe/dumper BRAM/src/main.v",
+  "ModuleLine" : 7,
+  "ModuleName" : "main",
+  "SubInsts" : [
+   {
+    "InstFile" : "C:/Projects/hdl/gowin/probe/dumper BRAM/src/main.v",
+    "InstLine" : 22,
+    "InstName" : "clkdiv",
+    "ModuleFile" : "C:/Projects/hdl/gowin/probe/dumper BRAM/src/main.v",
+    "ModuleLine" : 167,
+    "ModuleName" : "clkdivider"
+   },
+   {
+    "InstFile" : "C:/Projects/hdl/gowin/probe/dumper BRAM/src/main.v",
+    "InstLine" : 87,
+    "InstName" : "microcode",
+    "ModuleFile" : "C:/Projects/hdl/gowin/probe/dumper BRAM/src/main.v",
+    "ModuleLine" : 128,
+    "ModuleName" : "sequenser"
+   },
+   {
+    "InstFile" : "C:/Projects/hdl/gowin/probe/dumper BRAM/src/main.v",
+    "InstLine" : 108,
+    "InstName" : "debug",
+    "ModuleFile" : "C:/Projects/hdl/gowin/probe/dumper BRAM/src/main.v",
+    "ModuleLine" : 187,
+    "ModuleName" : "serialdebug",
+    "SubInsts" : [
+     {
+      "InstFile" : "C:/Projects/hdl/gowin/probe/dumper BRAM/src/main.v",
+      "InstLine" : 258,
+      "InstName" : "UART_TX",
+      "ModuleFile" : "C:/Projects/hdl/gowin/probe/dumper BRAM/src/uart.v",
+      "ModuleLine" : 81,
+      "ModuleName" : "serial_tx"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "InstFile" : "C:/Projects/hdl/gowin/probe/dumper BRAM/src/uart.v",
+  "InstLine" : 12,
+  "InstName" : "serial_rx",
+  "ModuleFile" : "C:/Projects/hdl/gowin/probe/dumper BRAM/src/uart.v",
+  "ModuleLine" : 12,
+  "ModuleName" : "serial_rx"
+ }
+]
